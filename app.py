@@ -71,12 +71,40 @@ def index() -> Response:
         padding: 18px 16px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
         text-align: center;
+        position: relative;
       }
 
       .gif-card h2 {
         margin: 0 0 12px;
         font-size: 1.2rem;
         color: #b23a5c;
+      }
+
+      .gif-overlay {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        width: 90px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .gif-overlay.show {
+        animation: fadeIn 1.8s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .prompt {
@@ -399,9 +427,15 @@ def index() -> Response:
         <h2 id="gifTitle">yay!!</h2>
         <img
           id="gifImage"
-          src="/dance_cat.gif"
+          src="/happy.JPG"
           alt="cat gif"
           style="width: 100%; border-radius: 12px"
+        />
+        <img
+          id="gifOverlay"
+          class="gif-overlay"
+          src="/dance_cat.gif"
+          alt="dancing cat"
         />
       </div>
     </div>
@@ -414,6 +448,7 @@ def index() -> Response:
       const gifModal = document.getElementById("gifModal");
       const gifTitle = document.getElementById("gifTitle");
       const gifImage = document.getElementById("gifImage");
+      const gifOverlay = document.getElementById("gifOverlay");
       let opened = false;
 
       function spawnHearts(count) {
@@ -437,25 +472,31 @@ def index() -> Response:
         }
       });
 
-      function showGif(title, src) {
+      function showGif(title, src, overlay) {
         gifTitle.textContent = title;
         gifImage.src = src;
+        gifOverlay.classList.remove("show");
+        gifOverlay.style.display = overlay ? "block" : "none";
         gifModal.classList.add("open");
         gifModal.setAttribute("aria-hidden", "false");
+        if (overlay) {
+          requestAnimationFrame(() => gifOverlay.classList.add("show"));
+        }
       }
 
       yesButton.addEventListener("click", () => {
-        showGif("yay!!", "/dance_cat.gif");
+        showGif("yay!!", "/happy.JPG", true);
       });
 
       noButton.addEventListener("click", () => {
-        showGif("aww...", "/sad_cat.gif");
+        showGif("aww...", "/sad_cat.gif", false);
       });
 
       gifModal.addEventListener("click", (event) => {
         if (event.target === gifModal) {
           gifModal.classList.remove("open");
           gifModal.setAttribute("aria-hidden", "true");
+          gifOverlay.classList.remove("show");
         }
       });
     </script>
@@ -472,6 +513,11 @@ def dance_cat() -> Response:
 @app.get("/sad_cat.gif")
 def sad_cat() -> Response:
     return send_from_directory(BASE_DIR, "sad_cat.gif")
+
+
+@app.get("/happy.JPG")
+def happy_image() -> Response:
+    return send_from_directory(BASE_DIR, "happy.JPG")
 
 
 if __name__ == "__main__":
